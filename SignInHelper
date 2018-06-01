@@ -50,7 +50,7 @@ function GetLoggedInUser {
 function IsPrefManaged {
 	local PREFKEY="$1"
 	local PREFDOMAIN="$2"
-	local MANAGED=$(python -c "from Foundation import CFPreferencesAppValueIsForced; print CFPreferencesAppValueIsForced('${PREFKEY}', '${PREFDOMAIN}')")
+	local MANAGED=$(/usr/bin/python -c "from Foundation import CFPreferencesAppValueIsForced; print CFPreferencesAppValueIsForced('${PREFKEY}', '${PREFDOMAIN}')")
 	if [ "$MANAGED" == "True" ]; then
 		echo "1"
 	else
