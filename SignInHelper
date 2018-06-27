@@ -2,7 +2,7 @@
 #set -x
 
 TOOL_NAME="Microsoft Office for Mac Sign In Helper"
-TOOL_VERSION="1.0"
+TOOL_VERSION="1.1"
 
 ## Copyright (c) 2018 Microsoft Corp. All rights reserved.
 ## Scripts are not supported under any Microsoft standard support program or service. The scripts are provided AS IS without warranty of any kind.
@@ -235,6 +235,16 @@ function DetectEnterpriseConnect {
 	fi
 }
 
+# Get the UPN from Enterprise Connect (code courtesy of Dennis Browning)
+function GetUPNfromEnterpriseConnect {
+	local ECUPN=$(${CMD_PREFIX} "/Applications/Enterprise Connect.app/Contents/SharedSupport/eccl" -a userPrincipalName | awk '/userPrincipalName:/{print $NF}' 2> /dev/null)
+	if [ "$ECUPN" == "" ]; then
+		echo "0"
+	else
+		echo "$ECUPN"
+	fi
+}
+
 # Evaluate command-line arguments
 while [[ $# > 0 ]]
 do
@@ -326,6 +336,18 @@ if [ "$UPN" == "0" ] && [ "$NM" == "1" ]; then
 		exit 0
 	else
 		echo ">>WARNING - Could not retrieve UPN from NoMAD"
+	fi
+fi
+
+# If we still haven't got a UPN, see if we can get it from Enterprise Connect (code courtesy of Dennis Browning)
+if [ "$UPN" == "0" ] && [ "$EC" == "1" ]; then
+	UPN=$(GetUPNfromEnterpriseConnect)
+	if [ ! "$UPN" == "0" ]; then
+		echo ">>INFO - Found UPN from Enterprise Connect: $UPN"
+		SetPrefill "$UPN"
+		exit 0
+	else
+		echo ">>WARNING - Could not retrieve UPN from Enterprise Connect"
 	fi
 fi
 
