@@ -2,7 +2,7 @@
 #set -x
 
 TOOL_NAME="Microsoft Office for Mac Sign In Helper"
-TOOL_VERSION="1.1"
+TOOL_VERSION="1.2"
 
 ## Copyright (c) 2018 Microsoft Corp. All rights reserved.
 ## Scripts are not supported under any Microsoft standard support program or service. The scripts are provided AS IS without warranty of any kind.
@@ -43,6 +43,18 @@ function GetLoggedInUser {
 		echo "0"
 	else
 		echo "$LOGGEDIN"
+	fi
+}
+
+# HOME folder detection
+function GetHomeFolder {
+	HOME=$(dscl . read /Users/"$1" NFSHomeDirectory | cut -d ':' -f2 | cut -d ' ' -f2)
+	if [ "$HOME" == "" ]; then
+		if [ -d "/Users/$1" ]; then
+			HOME="/Users/$1"
+		else
+			HOME=$(eval echo "~$1")
+		fi
 	fi
 }
 
@@ -114,6 +126,33 @@ function GetUPN {
 	fi
 }
 
+# Get the displayName for the user account
+function GetDisplayName {
+	local DOMAIN="$1"
+	local NAMESPACE="$2"
+	local ACCOUNT="$3"
+	local DISPLAYNAME=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName=$ACCOUNT displayName | grep -o 'displayName:.*' | cut -d : -f2 | cut -c 2- 2> /dev/null)
+	if [ "$DISPLAYNAME" == "" ]; then
+		echo "0"
+	else
+		echo "$DISPLAYNAME"
+	fi
+}
+
+# Parse initials from the displayName
+function GetInitials {
+	local DISPLAYNAME="$1"
+	local FIRST=$(echo ${DISPLAYNAME} | cut -d ' ' -f1 | cut -c 1)
+	local SECOND=$(echo ${DISPLAYNAME} | cut -d ' ' -f2 | cut -c 1)
+	local THIRD=$(echo ${DISPLAYNAME} | cut -d ' ' -f3 | cut -c 1)
+	local INITIALS=$(echo ${FIRST}${SECOND}${THIRD})
+	if [ "$INITIALS" == "" ]; then
+		echo "0"
+	else
+		echo "$INITIALS"
+	fi
+}
+
 # Set Sign In keys
 function SetPrefill {
 	local UPN="$1"
@@ -152,6 +191,32 @@ function SetAutoSignIn {
 		else
 			echo ">>ERROR - Did not set value for 'OfficeAutoSignIn'"
 			exit 1
+		fi
+	fi
+}
+
+# Set Office Username and Initials
+function SetOfficeUser {
+	local USERNAME="$1"
+	local INITIALS="$2"
+	if [ "$USERNAME" == "" ]; then
+		echo ">>WARNING - Cannot set Office user name"
+	else
+		${CMD_PREFIX} /usr/bin/defaults write $HOME/Library/Group\ Containers/UBF8T346G9.Office/MeContact.plist Name -string '$USERNAME'
+		if [ "$?" == "0" ]; then
+			echo ">>SUCCESS - Set Office user name to '$USERNAME'"
+		else
+			echo ">>WARNING - Did not set Office user name'"
+		fi
+	fi
+	if [ "$INITIALS" == "" ]; then
+		echo ">>WARNING - Cannot set Office user initials"
+	else
+		${CMD_PREFIX} /usr/bin/defaults write $HOME/Library/Group\ Containers/UBF8T346G9.Office/MeContact.plist Initials -string '$INITIALS'
+		if [ "$?" == "0" ]; then
+			echo ">>SUCCESS - Set Office user initials to '$INITIALS'"
+		else
+			echo ">>WARNING - Did not set Office user initials'"
 		fi
 	fi
 }
@@ -225,6 +290,16 @@ function GetUPNfromNoMAD {
 	fi
 }
 
+# Get the DisplayName from NoMAD's preference cache
+function GetDisplayNamefromNoMAD {
+	local NMDISPLAYNAME=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD DisplayName 2> /dev/null)
+	if [ "$NMDISPLAYNAME" == "" ]; then
+		echo "0"
+	else
+		echo "$NMDISPLAYNAME"
+	fi
+}
+
 # Detect Enterprise Connect presence
 function DetectEnterpriseConnect {
 	local EC=$(${CMD_PREFIX} /usr/bin/defaults read com.apple.Enterprise-Connect 2> /dev/null)
@@ -269,6 +344,7 @@ done
 CMD_PREFIX=""
 ROOTLOGON=$(RunningAsRoot)
 if [ "$ROOTLOGON" == "1" ]; then
+	GetHomeFolder "$3"
 	CURRENTUSER=$(GetLoggedInUser)
 	if [ ! "$CURRENTUSER" == "0" ]; then
 		echo ">>INFO - Script is running in the root security context - running commands as user: $CURRENTUSER"
@@ -312,7 +388,13 @@ if [ "$KERBCACHE" == "1" ]; then
 			UPN=$(GetUPN "$DOMAIN" "$NAMESPACE" "$ACCOUNT")
 			if [ ! "$UPN" == "0" ]; then
 				echo ">>INFO - Found UPN: $UPN"
-				SetPrefill "$UPN" 
+				SetPrefill "$UPN"
+				DISPLAYNAME=$(GetDisplayName "$DOMAIN" "$NAMESPACE" "$ACCOUNT")
+				if [ ! "$DISPLAYNAME" == "0" ]; then
+					echo ">>INFO - Found DisplayName: $DISPLAYNAME"
+					INITIALS=$(GetInitials "$DISPLAYNAME")
+					SetOfficeUser "$DISPLAYNAME" "$INITIALS"
+				fi
 				exit 0
 			else
 				echo ">>WARNING - Could not find UPN"
@@ -333,6 +415,12 @@ if [ "$UPN" == "0" ] && [ "$NM" == "1" ]; then
 	if [ ! "$UPN" == "0" ]; then
 		echo ">>INFO - Found UPN from NoMAD: $UPN"
 		SetPrefill "$UPN"
+		DISPLAYNAME=$(GetDisplayNamefromNoMAD)
+			if [ ! "$DISPLAYNAME" == "0" ]; then
+				echo ">>INFO - Found DisplayName from NoMAD: $DISPLAYNAME"
+				INITIALS=$(GetInitials "$DISPLAYNAME")
+				SetOfficeUser "$DISPLAYNAME" "$INITIALS"
+			fi
 		exit 0
 	else
 		echo ">>WARNING - Could not retrieve UPN from NoMAD"
