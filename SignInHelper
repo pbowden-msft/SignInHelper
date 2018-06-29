@@ -2,7 +2,7 @@
 #set -x
 
 TOOL_NAME="Microsoft Office for Mac Sign In Helper"
-TOOL_VERSION="1.2"
+TOOL_VERSION="1.2.1"
 
 ## Copyright (c) 2018 Microsoft Corp. All rights reserved.
 ## Scripts are not supported under any Microsoft standard support program or service. The scripts are provided AS IS without warranty of any kind.
@@ -202,9 +202,9 @@ function SetOfficeUser {
 	if [ "$USERNAME" == "" ]; then
 		echo ">>WARNING - Cannot set Office user name"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write $HOME/Library/Group\ Containers/UBF8T346G9.Office/MeContact.plist Name -string '$USERNAME'
+		${CMD_PREFIX} /usr/bin/defaults write ${HOME}/Library/Group\ Containers/UBF8T346G9.Office/MeContact.plist Name -string "${USERNAME}"
 		if [ "$?" == "0" ]; then
-			echo ">>SUCCESS - Set Office user name to '$USERNAME'"
+			echo ">>SUCCESS - Set Office user name to '${USERNAME}'"
 		else
 			echo ">>WARNING - Did not set Office user name'"
 		fi
@@ -212,9 +212,9 @@ function SetOfficeUser {
 	if [ "$INITIALS" == "" ]; then
 		echo ">>WARNING - Cannot set Office user initials"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write $HOME/Library/Group\ Containers/UBF8T346G9.Office/MeContact.plist Initials -string '$INITIALS'
+		${CMD_PREFIX} /usr/bin/defaults write ${HOME}/Library/Group\ Containers/UBF8T346G9.Office/MeContact.plist Initials -string "${INITIALS}"
 		if [ "$?" == "0" ]; then
-			echo ">>SUCCESS - Set Office user initials to '$INITIALS'"
+			echo ">>SUCCESS - Set Office user initials to '${INITIALS}'"
 		else
 			echo ">>WARNING - Did not set Office user initials'"
 		fi
