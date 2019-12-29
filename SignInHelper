@@ -38,7 +38,7 @@ RunningAsRoot() {
 # Returns the name of the logged-in user, which is useful if the script is running in the root context
 GetLoggedInUser() {
 	# The following line is courtesy of @scriptingosx - https://scriptingosx.com/2019/09/get-current-user-in-shell-scripts-on-macos/
-	local LOGGEDIN=$(/bin/echo "show State:/Users/ConsoleUser" | /usr/sbin/scutil | /usr/bin/awk '/Name :/&&!/loginwindow/{print $3}')
+	LOGGEDIN=$(/bin/echo "show State:/Users/ConsoleUser" | /usr/sbin/scutil | /usr/bin/awk '/Name :/&&!/loginwindow/{print $3}')
 	if [ "$LOGGEDIN" = "" ]; then
 		echo "0"
 	else
@@ -60,9 +60,9 @@ GetHomeFolder() {
 
 # Detects whether a given preference is managed
 IsPrefManaged() {
-	local PREFKEY="$1"
-	local PREFDOMAIN="$2"
-	local MANAGED=$(/usr/bin/python -c "from Foundation import CFPreferencesAppValueIsForced; print CFPreferencesAppValueIsForced('${PREFKEY}', '${PREFDOMAIN}')")
+	PREFKEY="$1"
+	PREFDOMAIN="$2"
+	MANAGED=$(/usr/bin/python -c "from Foundation import CFPreferencesAppValueIsForced; print CFPreferencesAppValueIsForced('${PREFKEY}', '${PREFDOMAIN}')")
 	if [ "$MANAGED" = "True" ]; then
 		echo "1"
 	else
@@ -72,7 +72,7 @@ IsPrefManaged() {
 
 # Detect Kerberos cache
 DetectKerbCache() {
-	local KERB=$(${CMD_PREFIX} /usr/bin/klist 2> /dev/null)
+	KERB=$(${CMD_PREFIX} /usr/bin/klist 2> /dev/null)
 	if [ "$KERB" = "" ]; then
 		echo "0"
 	else
@@ -82,7 +82,7 @@ DetectKerbCache() {
 
 # Get the Kerberos principal from the cache
 GetPrincipal() {
-	local PRINCIPAL=$(${CMD_PREFIX} /usr/bin/klist | grep -o 'Principal: .*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
+	PRINCIPAL=$(${CMD_PREFIX} /usr/bin/klist | grep -o 'Principal: .*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
 	if [ "$PRINCIPAL" = "" ]; then
 		echo "0"
 	else
@@ -92,20 +92,20 @@ GetPrincipal() {
 
 # Extract account name from principal
 GetAccountName() {
-	local PRINCIPAL="$1"
+	PRINCIPAL="$1"
 	echo "$PRINCIPAL" | cut -d @ -f1
 }
 
 # Extract domain name from principal
 GetDomainName() {
-	local PRINCIPAL="$1"
+	PRINCIPAL="$1"
 	echo "$PRINCIPAL" | cut -d @ -f2
 }
 
 # Get the defaultNamingContext from LDAP
 GetDefaultNamingContext() {
-	local DOMAIN="$1"
-	local DOMAINNC=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b '' -s base defaultNamingContext | grep -o 'defaultNamingContext:.*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
+	DOMAIN="$1"
+	DOMAINNC=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b '' -s base defaultNamingContext | grep -o 'defaultNamingContext:.*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
 	if [ "$DOMAINNC" = "" ]; then
 		echo "0"
 	else
@@ -115,10 +115,10 @@ GetDefaultNamingContext() {
 
 # Get the UPN for the user account
 GetUPN() {
-	local DOMAIN="$1"
-	local NAMESPACE="$2"
-	local ACCOUNT="$3"
-	local UPN=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName=$ACCOUNT userPrincipalName | grep -o 'userPrincipalName:.*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
+	DOMAIN="$1"
+	NAMESPACE="$2"
+	ACCOUNT="$3"
+	UPN=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName=$ACCOUNT userPrincipalName | grep -o 'userPrincipalName:.*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
 	if [ "$UPN" = "" ]; then
 		echo "0"
 	else
@@ -128,10 +128,10 @@ GetUPN() {
 
 # Get the displayName for the user account
 GetDisplayName() {
-	local DOMAIN="$1"
-	local NAMESPACE="$2"
-	local ACCOUNT="$3"
-	local DISPLAYNAME=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName=$ACCOUNT displayName | grep -o 'displayName:.*' | cut -d : -f2 | cut -c 2- 2> /dev/null)
+	DOMAIN="$1"
+	NAMESPACE="$2"
+	ACCOUNT="$3"
+	DISPLAYNAME=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName=$ACCOUNT displayName | grep -o 'displayName:.*' | cut -d : -f2 | cut -c 2- 2> /dev/null)
 	if [ "$DISPLAYNAME" = "" ]; then
 		echo "0"
 	else
@@ -141,11 +141,11 @@ GetDisplayName() {
 
 # Parse initials from the displayName
 GetInitials() {
-	local DISPLAYNAME="$1"
-	local FIRST=$(echo ${DISPLAYNAME} | cut -d ' ' -f1 | cut -c 1)
-	local SECOND=$(echo ${DISPLAYNAME} | cut -d ' ' -f2 | cut -c 1)
-	local THIRD=$(echo ${DISPLAYNAME} | cut -d ' ' -f3 | cut -c 1)
-	local INITIALS=$(echo ${FIRST}${SECOND}${THIRD})
+	DISPLAYNAME="$1"
+	FIRST=$(echo ${DISPLAYNAME} | cut -d ' ' -f1 | cut -c 1)
+	SECOND=$(echo ${DISPLAYNAME} | cut -d ' ' -f2 | cut -c 1)
+	THIRD=$(echo ${DISPLAYNAME} | cut -d ' ' -f3 | cut -c 1)
+	INITIALS=$(echo ${FIRST}${SECOND}${THIRD})
 	if [ "$INITIALS" = "" ]; then
 		echo "0"
 	else
@@ -155,7 +155,7 @@ GetInitials() {
 
 # Set Sign In keys
 SetPrefill() {
-	local UPN="$1"
+	UPN="$1"
 	SetPrefillOffice "$UPN"
 	SetPrefillSkypeForBusiness "$UPN"
 	### Comment out the next line if you don't want to enable automatic sign in, or you are setting it separately in a Configuration Profile
@@ -164,8 +164,8 @@ SetPrefill() {
 
 # Set Home Realm Discovery for Office apps
 SetPrefillOffice() {
-	local UPN="$1"
-	local KEYMANAGED=$(IsPrefManaged "OfficeActivationEmailAddress" "com.microsoft.office")
+	UPN="$1"
+	KEYMANAGED=$(IsPrefManaged "OfficeActivationEmailAddress" "com.microsoft.office")
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'OfficeActivationEmailAddress'"
 	else
@@ -181,7 +181,7 @@ SetPrefillOffice() {
 
 # Set Office Automatic Office Sign In
 SetAutoSignIn() {
-	local KEYMANAGED=$(IsPrefManaged "OfficeAutoSignIn" "com.microsoft.office")
+	KEYMANAGED=$(IsPrefManaged "OfficeAutoSignIn" "com.microsoft.office")
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>WARNING - Cannot override managed preference 'OfficeAutoSignIn'"
 	else
@@ -197,8 +197,8 @@ SetAutoSignIn() {
 
 # Set Office Username and Initials
 SetOfficeUser() {
-	local USERNAME="$1"
-	local INITIALS="$2"
+	USERNAME="$1"
+	INITIALS="$2"
 	if [ "$USERNAME" = "" ]; then
 		echo ">>WARNING - Cannot set Office user name"
 	else
@@ -223,8 +223,8 @@ SetOfficeUser() {
 
 # Set Skype for Business Sign In
 SetPrefillSkypeForBusiness() {
-	local UPN="$1"
-	local KEYMANAGED=$(IsPrefManaged "userName" "com.microsoft.SkypeForBusiness")
+	UPN="$1"
+	KEYMANAGED=$(IsPrefManaged "userName" "com.microsoft.SkypeForBusiness")
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'userName'"
 	else
@@ -236,8 +236,8 @@ SetPrefillSkypeForBusiness() {
 			exit 1
 		fi
 	fi
-	local SIP="$1"
-	local KEYMANAGED=$(IsPrefManaged "sipAddress" "com.microsoft.SkypeForBusiness")
+	SIP="$1"
+	KEYMANAGED=$(IsPrefManaged "sipAddress" "com.microsoft.SkypeForBusiness")
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'sipAddress'"
 	else
@@ -253,7 +253,7 @@ SetPrefillSkypeForBusiness() {
 
 # Detect Domain Join
 DetectDomainJoin() {
-	local DSCONFIGAD=$(${CMD_PREFIX} /usr/sbin/dsconfigad -show)
+	DSCONFIGAD=$(${CMD_PREFIX} /usr/sbin/dsconfigad -show)
 	if [ "$DSCONFIGAD" = "" ]; then
 		echo "0"
 	else
@@ -272,7 +272,7 @@ DetectJamf() {
 
 # Detect NoMAD presence
 DetectNoMAD() {
-	local NOMAD=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD 2> /dev/null)
+	NOMAD=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD 2> /dev/null)
 	if [ "$NOMAD" = "" ]; then
 		echo "0"
 	else
@@ -282,7 +282,7 @@ DetectNoMAD() {
 
 # Get the UPN from NoMAD's preference cache
 GetUPNfromNoMAD() {
-	local NMUPN=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD UserUPN 2> /dev/null)
+	NMUPN=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD UserUPN 2> /dev/null)
 	if [ "$NMUPN" = "" ]; then
 		echo "0"
 	else
@@ -292,7 +292,7 @@ GetUPNfromNoMAD() {
 
 # Get the DisplayName from NoMAD's preference cache
 GetDisplayNamefromNoMAD() {
-	local NMDISPLAYNAME=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD DisplayName 2> /dev/null)
+	NMDISPLAYNAME=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD DisplayName 2> /dev/null)
 	if [ "$NMDISPLAYNAME" = "" ]; then
 		echo "0"
 	else
@@ -302,7 +302,7 @@ GetDisplayNamefromNoMAD() {
 
 # Detect Enterprise Connect presence
 DetectEnterpriseConnect() {
-	local EC=$(${CMD_PREFIX} /usr/bin/defaults read com.apple.Enterprise-Connect 2> /dev/null)
+	EC=$(${CMD_PREFIX} /usr/bin/defaults read com.apple.Enterprise-Connect 2> /dev/null)
 	if [ "$EC" = "" ]; then
 		echo "0"
 	else
@@ -312,7 +312,7 @@ DetectEnterpriseConnect() {
 
 # Get the UPN from Enterprise Connect (code courtesy of Dennis Browning)
 GetUPNfromEnterpriseConnect() {
-	local ECUPN=$(${CMD_PREFIX} "/Applications/Enterprise Connect.app/Contents/SharedSupport/eccl" -a userPrincipalName | awk '/userPrincipalName:/{print $NF}' 2> /dev/null)
+	ECUPN=$(${CMD_PREFIX} "/Applications/Enterprise Connect.app/Contents/SharedSupport/eccl" -a userPrincipalName | awk '/userPrincipalName:/{print $NF}' 2> /dev/null)
 	if [ "$ECUPN" = "" ]; then
 		echo "0"
 	else
