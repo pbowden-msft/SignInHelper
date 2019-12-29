@@ -28,6 +28,7 @@ ShowUsage() {
 
 # Checks to see if the script is running as root
 RunningAsRoot() {
+    # shellcheck disable=SC2039
 	if [ "$EUID" = "0" ]; then
 		echo "1"
 	else
