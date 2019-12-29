@@ -19,7 +19,7 @@ TOOL_VERSION="1.3.0"
 
 # Shows tool usage and parameters
 ShowUsage() {
-	echo $TOOL_NAME - $TOOL_VERSION
+	echo "$TOOL_NAME - $TOOL_VERSION"
 	echo "Purpose: Detects UPN of logged-on user and pre-fills Office and Skype for Business Sign In page"
 	echo "Usage: $0 [--Verbose]"
 	echo
@@ -118,7 +118,7 @@ GetUPN() {
 	DOMAIN="$1"
 	NAMESPACE="$2"
 	ACCOUNT="$3"
-	UPN=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName=$ACCOUNT userPrincipalName | grep -o 'userPrincipalName:.*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
+	UPN=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName="$ACCOUNT" userPrincipalName | grep -o 'userPrincipalName:.*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
 	if [ "$UPN" = "" ]; then
 		echo "0"
 	else
@@ -131,7 +131,7 @@ GetDisplayName() {
 	DOMAIN="$1"
 	NAMESPACE="$2"
 	ACCOUNT="$3"
-	DISPLAYNAME=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName=$ACCOUNT displayName | grep -o 'displayName:.*' | cut -d : -f2 | cut -c 2- 2> /dev/null)
+	DISPLAYNAME=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b "$NAMESPACE" -s sub samAccountName="$ACCOUNT" displayName | grep -o 'displayName:.*' | cut -d : -f2 | cut -c 2- 2> /dev/null)
 	if [ "$DISPLAYNAME" = "" ]; then
 		echo "0"
 	else
@@ -142,10 +142,10 @@ GetDisplayName() {
 # Parse initials from the displayName
 GetInitials() {
 	DISPLAYNAME="$1"
-	FIRST=$(echo ${DISPLAYNAME} | cut -d ' ' -f1 | cut -c 1)
-	SECOND=$(echo ${DISPLAYNAME} | cut -d ' ' -f2 | cut -c 1)
-	THIRD=$(echo ${DISPLAYNAME} | cut -d ' ' -f3 | cut -c 1)
-	INITIALS=$(echo ${FIRST}${SECOND}${THIRD})
+	FIRST=$(echo "${DISPLAYNAME}" | cut -d ' ' -f1 | cut -c 1)
+	SECOND=$(echo "${DISPLAYNAME}" | cut -d ' ' -f2 | cut -c 1)
+	THIRD=$(echo "${DISPLAYNAME}" | cut -d ' ' -f3 | cut -c 1)
+	INITIALS="${FIRST}${SECOND}${THIRD}"
 	if [ "$INITIALS" = "" ]; then
 		echo "0"
 	else
@@ -169,7 +169,7 @@ SetPrefillOffice() {
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'OfficeActivationEmailAddress'"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.office OfficeActivationEmailAddress -string ${UPN}
+		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.office OfficeActivationEmailAddress -string "${UPN}"
 		if [ "$?" = "0" ]; then
 			echo ">>SUCCESS - Set 'OfficeActivationEmailAddress' to ${UPN}"
 		else
@@ -202,7 +202,7 @@ SetOfficeUser() {
 	if [ "$USERNAME" = "" ]; then
 		echo ">>WARNING - Cannot set Office user name"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write ${HOME}/Library/Group\ Containers/UBF8T346G9.Office/MeContact.plist Name -string "${USERNAME}"
+		${CMD_PREFIX} /usr/bin/defaults write "${HOME}/Library/Group Containers/UBF8T346G9.Office/MeContact.plist" Name -string "${USERNAME}"
 		if [ "$?" = "0" ]; then
 			echo ">>SUCCESS - Set Office user name to '${USERNAME}'"
 		else
@@ -212,7 +212,7 @@ SetOfficeUser() {
 	if [ "$INITIALS" = "" ]; then
 		echo ">>WARNING - Cannot set Office user initials"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write ${HOME}/Library/Group\ Containers/UBF8T346G9.Office/MeContact.plist Initials -string "${INITIALS}"
+		${CMD_PREFIX} /usr/bin/defaults write "${HOME}/Library/Group Containers/UBF8T346G9.Office/MeContact.plist" Initials -string "${INITIALS}"
 		if [ "$?" = "0" ]; then
 			echo ">>SUCCESS - Set Office user initials to '${INITIALS}'"
 		else
@@ -228,7 +228,7 @@ SetPrefillSkypeForBusiness() {
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'userName'"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.SkypeForBusiness userName -string ${UPN}
+		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.SkypeForBusiness userName -string "${UPN}"
 		if [ "$?" = "0" ]; then
 			echo ">>SUCCESS - Set 'userName' to ${UPN}"
 		else
@@ -241,7 +241,7 @@ SetPrefillSkypeForBusiness() {
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'sipAddress'"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.SkypeForBusiness sipAddress -string ${SIP}
+		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.SkypeForBusiness sipAddress -string "${SIP}"
 		if [ "$?" = "0" ]; then
 			echo ">>SUCCESS - Set 'sipAddress' to ${SIP}"
 		else
