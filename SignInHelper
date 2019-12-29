@@ -170,8 +170,7 @@ SetPrefillOffice() {
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'OfficeActivationEmailAddress'"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.office OfficeActivationEmailAddress -string "${UPN}"
-		if [ "$?" = "0" ]; then
+		if ${CMD_PREFIX} /usr/bin/defaults write com.microsoft.office OfficeActivationEmailAddress -string "${UPN}"; then
 			echo ">>SUCCESS - Set 'OfficeActivationEmailAddress' to ${UPN}"
 		else
 			echo ">>ERROR - Did not set value for 'OfficeActivationEmailAddress'"
@@ -186,8 +185,7 @@ SetAutoSignIn() {
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>WARNING - Cannot override managed preference 'OfficeAutoSignIn'"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.office OfficeAutoSignIn -bool TRUE
-		if [ "$?" = "0" ]; then
+		if ${CMD_PREFIX} /usr/bin/defaults write com.microsoft.office OfficeAutoSignIn -bool true; then
 			echo ">>SUCCESS - Set 'OfficeAutoSignIn' to TRUE"
 		else
 			echo ">>ERROR - Did not set value for 'OfficeAutoSignIn'"
@@ -203,8 +201,7 @@ SetOfficeUser() {
 	if [ "$USERNAME" = "" ]; then
 		echo ">>WARNING - Cannot set Office user name"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write "${HOME}/Library/Group Containers/UBF8T346G9.Office/MeContact.plist" Name -string "${USERNAME}"
-		if [ "$?" = "0" ]; then
+		if ${CMD_PREFIX} /usr/bin/defaults write "${HOME}/Library/Group Containers/UBF8T346G9.Office/MeContact.plist" Name -string "${USERNAME}"; then
 			echo ">>SUCCESS - Set Office user name to '${USERNAME}'"
 		else
 			echo ">>WARNING - Did not set Office user name'"
@@ -213,8 +210,7 @@ SetOfficeUser() {
 	if [ "$INITIALS" = "" ]; then
 		echo ">>WARNING - Cannot set Office user initials"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write "${HOME}/Library/Group Containers/UBF8T346G9.Office/MeContact.plist" Initials -string "${INITIALS}"
-		if [ "$?" = "0" ]; then
+		if ${CMD_PREFIX} /usr/bin/defaults write "${HOME}/Library/Group Containers/UBF8T346G9.Office/MeContact.plist" Initials -string "${INITIALS}"; then
 			echo ">>SUCCESS - Set Office user initials to '${INITIALS}'"
 		else
 			echo ">>WARNING - Did not set Office user initials'"
@@ -229,8 +225,7 @@ SetPrefillSkypeForBusiness() {
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'userName'"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.SkypeForBusiness userName -string "${UPN}"
-		if [ "$?" = "0" ]; then
+		if ${CMD_PREFIX} /usr/bin/defaults write com.microsoft.SkypeForBusiness userName -string "${UPN}"; then
 			echo ">>SUCCESS - Set 'userName' to ${UPN}"
 		else
 			echo ">>ERROR - Did not set value for 'userName'"
@@ -242,8 +237,7 @@ SetPrefillSkypeForBusiness() {
 	if [ "$KEYMANAGED" = "1" ]; then
 		echo ">>ERROR - Cannot override managed preference 'sipAddress'"
 	else
-		${CMD_PREFIX} /usr/bin/defaults write com.microsoft.SkypeForBusiness sipAddress -string "${SIP}"
-		if [ "$?" = "0" ]; then
+		if ${CMD_PREFIX} /usr/bin/defaults write com.microsoft.SkypeForBusiness sipAddress -string "${SIP}"; then
 			echo ">>SUCCESS - Set 'sipAddress' to ${SIP}"
 		else
 			echo ">>ERROR - Did not set value for 'sipAddress'"
