@@ -37,8 +37,8 @@ function RunningAsRoot {
 
 # Returns the name of the logged-in user, which is useful if the script is running in the root context
 function GetLoggedInUser {
-	# The following line is courtesy of @macmule - https://macmule.com/2014/11/19/how-to-get-the-currently-logged-in-user-in-a-more-apple-approved-way/
-	local LOGGEDIN=$(/usr/bin/python -c 'from SystemConfiguration import SCDynamicStoreCopyConsoleUser; import sys; username = (SCDynamicStoreCopyConsoleUser(None, None, None) or [None])[0]; username = [username,""][username in [u"loginwindow", None, u""]]; sys.stdout.write(username + "\n");')
+	# The following line is courtesy of @scriptingosx - https://scriptingosx.com/2019/09/get-current-user-in-shell-scripts-on-macos/
+	local LOGGEDIN=$(/bin/echo "show State:/Users/ConsoleUser" | /usr/sbin/scutil | /usr/bin/awk '/Name :/&&!/loginwindow/{print $3}')
 	if [ "$LOGGEDIN" == "" ]; then
 		echo "0"
 	else
