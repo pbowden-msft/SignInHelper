@@ -28,7 +28,7 @@ ShowUsage() {
 
 # Checks to see if the script is running as root
 RunningAsRoot() {
-    # shellcheck disable=SC2039
+	# shellcheck disable=SC2039
 	if [ "$EUID" = "0" ]; then
 		echo "1"
 	else
@@ -319,15 +319,15 @@ GetUPNfromEnterpriseConnect() {
 while [ $# -gt 0 ]; do
 	key="$1"
 	case "$key" in
-    	--Help|-h|--help)
-    	ShowUsage
-    	exit 0
+		--Help|-h|--help)
+		ShowUsage
+		exit 0
 		shift # past argument
-    	;;
-    	--Verbose|-v|--verbose)
-    	set -x
-    	shift # past argument
-    	;;
+		;;
+		--Verbose|-v|--verbose)
+		set -x
+		shift # past argument
+		;;
 	esac
 	shift # past argument or value
 done
