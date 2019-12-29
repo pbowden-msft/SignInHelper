@@ -344,8 +344,8 @@ done
 CMD_PREFIX=""
 ROOTLOGON=$(RunningAsRoot)
 if [ "$ROOTLOGON" == "1" ]; then
-	GetHomeFolder "$3"
 	CURRENTUSER=$(GetLoggedInUser)
+	GetHomeFolder "$CURRENTUSER"
 	if [ ! "$CURRENTUSER" == "0" ]; then
 		echo ">>INFO - Script is running in the root security context - running commands as user: $CURRENTUSER"
 		CMD_PREFIX="/usr/bin/sudo -u ${CURRENTUSER}"
