@@ -18,7 +18,7 @@ TOOL_VERSION="1.3.0"
 ## When running under Jamf Pro, no additional parameters need to be specified.
 
 # Shows tool usage and parameters
-function ShowUsage {
+ShowUsage() {
 	echo $TOOL_NAME - $TOOL_VERSION
 	echo "Purpose: Detects UPN of logged-on user and pre-fills Office and Skype for Business Sign In page"
 	echo "Usage: $0 [--Verbose]"
@@ -27,7 +27,7 @@ function ShowUsage {
 }
 
 # Checks to see if the script is running as root
-function RunningAsRoot {
+RunningAsRoot() {
 	if [ "$EUID" = "0" ]; then
 		echo "1"
 	else
@@ -36,7 +36,7 @@ function RunningAsRoot {
 }
 
 # Returns the name of the logged-in user, which is useful if the script is running in the root context
-function GetLoggedInUser {
+GetLoggedInUser() {
 	# The following line is courtesy of @scriptingosx - https://scriptingosx.com/2019/09/get-current-user-in-shell-scripts-on-macos/
 	local LOGGEDIN=$(/bin/echo "show State:/Users/ConsoleUser" | /usr/sbin/scutil | /usr/bin/awk '/Name :/&&!/loginwindow/{print $3}')
 	if [ "$LOGGEDIN" == "" ]; then
@@ -47,7 +47,7 @@ function GetLoggedInUser {
 }
 
 # HOME folder detection
-function GetHomeFolder {
+GetHomeFolder() {
 	HOME=$(dscl . read /Users/"$1" NFSHomeDirectory | cut -d ':' -f2 | cut -d ' ' -f2)
 	if [ "$HOME" == "" ]; then
 		if [ -d "/Users/$1" ]; then
@@ -59,7 +59,7 @@ function GetHomeFolder {
 }
 
 # Detects whether a given preference is managed
-function IsPrefManaged {
+IsPrefManaged() {
 	local PREFKEY="$1"
 	local PREFDOMAIN="$2"
 	local MANAGED=$(/usr/bin/python -c "from Foundation import CFPreferencesAppValueIsForced; print CFPreferencesAppValueIsForced('${PREFKEY}', '${PREFDOMAIN}')")
@@ -71,7 +71,7 @@ function IsPrefManaged {
 }
 
 # Detect Kerberos cache
-function DetectKerbCache {
+DetectKerbCache() {
 	local KERB=$(${CMD_PREFIX} /usr/bin/klist 2> /dev/null)
 	if [ "$KERB" == "" ]; then
 		echo "0"
@@ -81,7 +81,7 @@ function DetectKerbCache {
 }
 
 # Get the Kerberos principal from the cache
-function GetPrincipal {
+GetPrincipal() {
 	local PRINCIPAL=$(${CMD_PREFIX} /usr/bin/klist | grep -o 'Principal: .*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
 	if [ "$PRINCIPAL" == "" ]; then
 		echo "0"
@@ -91,19 +91,19 @@ function GetPrincipal {
 }
 
 # Extract account name from principal
-function GetAccountName {
+GetAccountName() {
 	local PRINCIPAL="$1"
 	echo "$PRINCIPAL" | cut -d @ -f1
 }
 
 # Extract domain name from principal
-function GetDomainName {
+GetDomainName() {
 	local PRINCIPAL="$1"
 	echo "$PRINCIPAL" | cut -d @ -f2
 }
 
 # Get the defaultNamingContext from LDAP
-function GetDefaultNamingContext {
+GetDefaultNamingContext() {
 	local DOMAIN="$1"
 	local DOMAINNC=$(${CMD_PREFIX} /usr/bin/ldapsearch -H "ldap://$DOMAIN" -LLL -b '' -s base defaultNamingContext | grep -o 'defaultNamingContext:.*' | cut -d : -f2 | cut -d' ' -f2 2> /dev/null)
 	if [ "$DOMAINNC" == "" ]; then
@@ -114,7 +114,7 @@ function GetDefaultNamingContext {
 }
 
 # Get the UPN for the user account
-function GetUPN {
+GetUPN() {
 	local DOMAIN="$1"
 	local NAMESPACE="$2"
 	local ACCOUNT="$3"
@@ -127,7 +127,7 @@ function GetUPN {
 }
 
 # Get the displayName for the user account
-function GetDisplayName {
+GetDisplayName() {
 	local DOMAIN="$1"
 	local NAMESPACE="$2"
 	local ACCOUNT="$3"
@@ -140,7 +140,7 @@ function GetDisplayName {
 }
 
 # Parse initials from the displayName
-function GetInitials {
+GetInitials() {
 	local DISPLAYNAME="$1"
 	local FIRST=$(echo ${DISPLAYNAME} | cut -d ' ' -f1 | cut -c 1)
 	local SECOND=$(echo ${DISPLAYNAME} | cut -d ' ' -f2 | cut -c 1)
@@ -154,7 +154,7 @@ function GetInitials {
 }
 
 # Set Sign In keys
-function SetPrefill {
+SetPrefill() {
 	local UPN="$1"
 	SetPrefillOffice "$UPN"
 	SetPrefillSkypeForBusiness "$UPN"
@@ -163,7 +163,7 @@ function SetPrefill {
 }
 
 # Set Home Realm Discovery for Office apps
-function SetPrefillOffice {
+SetPrefillOffice() {
 	local UPN="$1"
 	local KEYMANAGED=$(IsPrefManaged "OfficeActivationEmailAddress" "com.microsoft.office")
 	if [ "$KEYMANAGED" == "1" ]; then
@@ -180,7 +180,7 @@ function SetPrefillOffice {
 }
 
 # Set Office Automatic Office Sign In
-function SetAutoSignIn {
+SetAutoSignIn() {
 	local KEYMANAGED=$(IsPrefManaged "OfficeAutoSignIn" "com.microsoft.office")
 	if [ "$KEYMANAGED" == "1" ]; then
 		echo ">>WARNING - Cannot override managed preference 'OfficeAutoSignIn'"
@@ -196,7 +196,7 @@ function SetAutoSignIn {
 }
 
 # Set Office Username and Initials
-function SetOfficeUser {
+SetOfficeUser() {
 	local USERNAME="$1"
 	local INITIALS="$2"
 	if [ "$USERNAME" == "" ]; then
@@ -222,7 +222,7 @@ function SetOfficeUser {
 }
 
 # Set Skype for Business Sign In
-function SetPrefillSkypeForBusiness {
+SetPrefillSkypeForBusiness() {
 	local UPN="$1"
 	local KEYMANAGED=$(IsPrefManaged "userName" "com.microsoft.SkypeForBusiness")
 	if [ "$KEYMANAGED" == "1" ]; then
@@ -252,7 +252,7 @@ function SetPrefillSkypeForBusiness {
 }
 
 # Detect Domain Join
-function DetectDomainJoin {
+DetectDomainJoin() {
 	local DSCONFIGAD=$(${CMD_PREFIX} /usr/sbin/dsconfigad -show)
 	if [ "$DSCONFIGAD" == "" ]; then
 		echo "0"
@@ -262,7 +262,7 @@ function DetectDomainJoin {
 }
 
 # Detect Jamf presence
-function DetectJamf {
+DetectJamf() {
 	if [ -e "/Library/Preferences/com.jamfsoftware.jamf.plist" ]; then
 		echo "1"
 	else
@@ -271,7 +271,7 @@ function DetectJamf {
 }
 
 # Detect NoMAD presence
-function DetectNoMAD {
+DetectNoMAD() {
 	local NOMAD=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD 2> /dev/null)
 	if [ "$NOMAD" == "" ]; then
 		echo "0"
@@ -281,7 +281,7 @@ function DetectNoMAD {
 }
 
 # Get the UPN from NoMAD's preference cache
-function GetUPNfromNoMAD {
+GetUPNfromNoMAD() {
 	local NMUPN=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD UserUPN 2> /dev/null)
 	if [ "$NMUPN" == "" ]; then
 		echo "0"
@@ -291,7 +291,7 @@ function GetUPNfromNoMAD {
 }
 
 # Get the DisplayName from NoMAD's preference cache
-function GetDisplayNamefromNoMAD {
+GetDisplayNamefromNoMAD() {
 	local NMDISPLAYNAME=$(${CMD_PREFIX} /usr/bin/defaults read com.trusourcelabs.NoMAD DisplayName 2> /dev/null)
 	if [ "$NMDISPLAYNAME" == "" ]; then
 		echo "0"
@@ -301,7 +301,7 @@ function GetDisplayNamefromNoMAD {
 }
 
 # Detect Enterprise Connect presence
-function DetectEnterpriseConnect {
+DetectEnterpriseConnect() {
 	local EC=$(${CMD_PREFIX} /usr/bin/defaults read com.apple.Enterprise-Connect 2> /dev/null)
 	if [ "$EC" == "" ]; then
 		echo "0"
@@ -311,7 +311,7 @@ function DetectEnterpriseConnect {
 }
 
 # Get the UPN from Enterprise Connect (code courtesy of Dennis Browning)
-function GetUPNfromEnterpriseConnect {
+GetUPNfromEnterpriseConnect() {
 	local ECUPN=$(${CMD_PREFIX} "/Applications/Enterprise Connect.app/Contents/SharedSupport/eccl" -a userPrincipalName | awk '/userPrincipalName:/{print $NF}' 2> /dev/null)
 	if [ "$ECUPN" == "" ]; then
 		echo "0"
