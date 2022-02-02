@@ -2,9 +2,9 @@
 #set -x
 
 TOOL_NAME="Microsoft Office for Mac Sign In Helper"
-TOOL_VERSION="1.4.0"
+TOOL_VERSION="1.5.0"
 
-## Copyright (c) 2020 Microsoft Corp. All rights reserved.
+## Copyright (c) 2022 Microsoft Corp. All rights reserved.
 ## Scripts are not supported under any Microsoft standard support program or service. The scripts are provided AS IS without warranty of any kind.
 ## Microsoft disclaims all implied warranties including, without limitation, any implied warranties of merchantability or of fitness for a 
 ## particular purpose. The entire risk arising out of the use or performance of the scripts and documentation remains with you. In no event shall
@@ -59,12 +59,20 @@ GetHomeFolder() {
 	fi
 }
 
+# JavaScript for Automation Bridge to Objective-C
+JXAPrefIsManaged() { # $1: domain, $2: key
+     osascript -l JavaScript << EndOfScript
+     ObjC.import('Foundation')
+     $.CFPreferencesAppValueIsForced(ObjC.wrap('$2'), ObjC.wrap('$1'))
+EndOfScript
+}
+
 # Detects whether a given preference is managed
 IsPrefManaged() {
 	PREFKEY="$1"
 	PREFDOMAIN="$2"
-	MANAGED=$(/usr/bin/python -c "from Foundation import CFPreferencesAppValueIsForced; print CFPreferencesAppValueIsForced('${PREFKEY}', '${PREFDOMAIN}')")
-	if [ "$MANAGED" = "True" ]; then
+	MANAGED=$(JXAPrefIsManaged "${PREFDOMAIN}" "${PREFKEY}")
+	if [ "$MANAGED" = "true" ]; then
 		echo "1"
 	else
 		echo "0"
