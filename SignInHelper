@@ -2,7 +2,7 @@
 #set -x
 
 TOOL_NAME="Microsoft Office for Mac Sign In Helper"
-TOOL_VERSION="1.5.0"
+TOOL_VERSION="1.6.0"
 
 ## Copyright (c) 2022 Microsoft Corp. All rights reserved.
 ## Scripts are not supported under any Microsoft standard support program or service. The scripts are provided AS IS without warranty of any kind.
@@ -366,10 +366,11 @@ CMD_PREFIX=""
 ROOTLOGON=$(RunningAsRoot)
 if [ "$ROOTLOGON" = "1" ]; then
 	CURRENTUSER=$(GetLoggedInUser)
+	CURRENTUSERID=$(id -u "$CURRENTUSER")
 	GetHomeFolder "$CURRENTUSER"
 	if [ ! "$CURRENTUSER" = "0" ]; then
 		echo ">>INFO - Script is running in the root security context - running commands as user: $CURRENTUSER"
-		CMD_PREFIX="/usr/bin/sudo -u ${CURRENTUSER}"
+		CMD_PREFIX="/bin/launchctl asuser ${CURRENTUSERID} /usr/bin/sudo -u ${CURRENTUSER}"
 	else
 		echo ">>ERROR - Could not obtain the logged in user name"
 		exit 1
