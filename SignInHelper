@@ -477,6 +477,24 @@ if [ "$UPN" = "0" ] && [ "$JC" = "1" ]; then
 	fi
 fi
 
+# Check logged in user name for UPN
+if [ "$UPN" = "0" ]; then
+	UPN=${CURRENTUSER}
+	if [ ! "$UPN" = "0" ]; then
+		echo ">>INFO - Using UPN from logged in user: $UPN"
+		SetPrefill "$UPN"
+		DISPLAYNAME=$(/usr/bin/id -F "$CURRENTUSER")
+		if [ -n "$DISPLAYNAME" ]; then
+			echo ">>INFO - Found DisplayName from logged in user: $DISPLAYNAME"
+			INITIALS=$(GetInitials "$DISPLAYNAME")
+			SetOfficeUser "$DISPLAYNAME" "$INITIALS"
+		fi
+	    exit 0
+	else
+		echo ">>WARNING - Could not retrieve UPN from logged in user name"
+	fi
+fi
+
 # If we still haven't got a UPN yet, show an error
 if [ "$UPN" = "0" ]; then
 	echo ">>ERROR - Could not detect UPN"
